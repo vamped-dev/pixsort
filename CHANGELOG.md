@@ -19,4 +19,4 @@ First release.
 - CLI with colours, human-readable summary, `--json` and `--report out.csv`.
 - 31 tests covering dates, compression, deduplication, dry-run and reports.
 
-[0.1.0]: https://github.com/OWNER/pixsort/releases/tag/v0.1.0
+[0.1.0]: https://github.com/vamped-dev/pixsort/releases/tag/v0.1.0

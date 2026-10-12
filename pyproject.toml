@@ -25,8 +25,8 @@ classifiers = [
     "Topic :: System :: Archiving",
     "Topic :: Utilities",
 ]
-# TODO: put your own name here — it shows up in `pip show pixsort`
-authors = [{ name = "Your Name", email = "you@example.com" }]
+# ← поставь своё имя и почту: их увидят в профиле пакета (pip show pixsort)
+authors = [{ name = "vamped-dev" }]
 dependencies = ["Pillow>=10.0"]
 
 [project.optional-dependencies]
@@ -37,8 +37,8 @@ dev = ["pytest>=7.4"]
 pixsort = "pixsort.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/OWNER/pixsort"
-Issues = "https://github.com/OWNER/pixsort/issues"
+Homepage = "https://github.com/vamped-dev/pixsort"
+Issues = "https://github.com/vamped-dev/pixsort/issues"
 
 [tool.setuptools.packages.find]
 include = ["pixsort*"]

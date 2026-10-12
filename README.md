@@ -1,5 +1,7 @@
 # pixsort
 
+[![CI](https://github.com/vamped-dev/pixsort/actions/workflows/ci.yml/badge.svg)](https://github.com/vamped-dev/pixsort/actions/workflows/ci.yml)
+
 **A tiny, safe image janitor for your Downloads folder.**
 
 It scans a folder, shrinks the images without visible quality loss, and files them into
@@ -66,7 +68,7 @@ pip install pixsort
 From source (development):
 
 ```bash
-git clone https://github.com/OWNER/pixsort.git
+git clone https://github.com/vamped-dev/pixsort.git
 cd pixsort
 python -m pip install -e ".[dev]"
 pytest
