@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pixsort"
+version = "0.1.0"
+description = "Sort images into dated folders and shrink them without visible quality loss."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+keywords = ["images", "downloads", "organizer", "cleanup", "compress", "cli"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Multimedia :: Graphics",
+    "Topic :: System :: Archiving",
+    "Topic :: Utilities",
+]
+# TODO: put your own name here — it shows up in `pip show pixsort`
+authors = [{ name = "Your Name", email = "you@example.com" }]
+dependencies = ["Pillow>=10.0"]
+
+[project.optional-dependencies]
+heic = ["pillow-heif>=0.13"]
+dev = ["pytest>=7.4"]
+
+[project.scripts]
+pixsort = "pixsort.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/OWNER/pixsort"
+Issues = "https://github.com/OWNER/pixsort/issues"
+
+[tool.setuptools.packages.find]
+include = ["pixsort*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
