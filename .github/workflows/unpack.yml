@@ -1,20 +1,86 @@
-name: Unpack
+# One-time helper: if you uploaded the project as a .zip, this workflow
+# unpacks it inside the repository, runs the tests and commits the files back.
+#
+# Run it once from the Actions tab → "Unpack project zip" → Run workflow.
+#
+# IMPORTANT: GitHub does not allow an automatic (GITHUB_TOKEN) push that
+# creates or updates anything inside .github/workflows/. That is a platform
+# rule, not a bug and not a permission setting. So this workflow commits
+# everything EXCEPT the workflow files - add those once by hand if needed.
+name: Unpack project zip
+
 on:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
-  unpack:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
+  unpack-and-test:
+    name: Unpack and test
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - name: Unzip and Push
+      - uses: actions/checkout@v7
+
+      - name: Unpack the archive (if present)
         run: |
-          unzip -o pixsort-src.zip
-          rm -rf .github/workflows/ci.yml
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add .
-          git commit -m "Unpack source code" || echo "Nothing to commit"
-          git push
+          ZIP=$(ls -1 *.zip 2>/dev/null | head -1 || true)
+          if [ -z "$ZIP" ]; then
+            echo "No zip found - the sources are already in the repo."
+            exit 0
+          fi
+          echo "Found archive: $ZIP"
+          mkdir -p _src
+          unzip -q -o "$ZIP" -d _src || true
+          SRC=$(find _src -maxdepth 3 -name pyproject.toml -printf '%h\n' 2>/dev/null | head -1)
+          if [ -z "$SRC" ]; then
+            echo "::error::pyproject.toml not found inside the archive"
+            exit 1
+          fi
+          echo "Sources found in: $SRC"
+          cp -r "$SRC"/. .
+          rm -rf _src
+          ls -la
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+
+      - name: Run tests
+        run: python -m pytest -q
+
+      - name: Commit the sources back
+        run: |
+          echo "Actions used in this project:"
+          grep -h "uses:" .github/workflows/*.yml || true
+
+          git config user.name  "pixsort-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+
+          # GitHub forbids the automatic token from touching workflow files,
+          # so we simply leave them out of the commit instead of failing.
+          git reset -q -- .github/workflows 2>/dev/null || true
+
+          if git diff --cached --quiet; then
+            echo "Nothing new to commit - the project is up to date."
+          else
+            git commit -m "Unpack pixsort sources"
+            if git push; then
+              echo "Done: repository files updated."
+            else
+              echo "::warning::Push failed. If the log says 'no write permission': open Settings → Actions → General → Workflow permissions → choose 'Read and write permissions' → Save, then run this workflow again."
+            fi
+          fi
+
+          echo
+          echo "──────────────────────────────────────────────────────────────"
+          echo "NOTE: files inside .github/workflows/ are never pushed by this bot"
+          echo "(GitHub does not allow it). If ci.yml is missing in the repo,"
+          echo "create it once by hand: Add file → Create new file → name it"
+          echo ".github/workflows/ci.yml and paste the content from the guide."
