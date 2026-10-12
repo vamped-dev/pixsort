@@ -1,0 +1,64 @@
+# One-time helper: if you uploaded the project as a .zip, this workflow
+# unpacks it inside the repository, runs the tests and commits the files back.
+#
+# Run it once from the Actions tab → "Unpack project zip" → Run workflow.
+name: Unpack project zip
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  unpack-and-test:
+    name: Unpack and test
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Unpack the archive (if present)
+        run: |
+          ZIP=$(ls -1 *.zip 2>/dev/null | head -1 || true)
+          if [ -z "$ZIP" ]; then
+            echo "No zip found - the sources are already in the repo."
+            exit 0
+          fi
+          echo "Found archive: $ZIP"
+          mkdir -p _src
+          unzip -q -o "$ZIP" -d _src || true
+          SRC=$(find _src -maxdepth 3 -name pyproject.toml -printf '%h\n' 2>/dev/null | head -1)
+          if [ -z "$SRC" ]; then
+            echo "::error::pyproject.toml not found inside the archive"
+            exit 1
+          fi
+          echo "Sources found in: $SRC"
+          cp -r "$SRC"/. .
+          rm -rf _src
+          ls -la
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+
+      - name: Run tests
+        run: python -m pytest -q
+
+      - name: Commit the sources back
+        run: |
+          echo "Actions now used in this project:"
+          grep -h "uses:" .github/workflows/*.yml || true
+          git config user.name  "pixsort-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          git commit -m "Unpack pixsort sources" || echo "Nothing to commit"
+          if git push; then
+            echo "Done: repository files updated."
+          else
+            echo "::warning::Could not update the repository (no write permission). Tests and results are fine. Fix: Settings → Actions → General → Workflow permissions → Read and write permissions."
+          fi
