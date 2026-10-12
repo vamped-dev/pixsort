@@ -11,6 +11,13 @@ on:
     tags: ["v*"]
   pull_request:
   workflow_dispatch:
+  # Сработает и при публикации релиза — на случай, если тег создан через веб-интерфейс.
+  release:
+    types: [published]
+
+# Разрешение прикреплять собранные файлы к релизу.
+permissions:
+  contents: write
 
 jobs:
   test:
